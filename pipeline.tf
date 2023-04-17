@@ -50,7 +50,7 @@ resource "aws_codebuild_project" "tf-apply" {
 
 resource "aws_codepipeline" "codepipeline" {
   name     = "tf-test-pipeline"
-  role_arn = aws_iam_role.tf-codebuild-role.arn
+  role_arn = aws_iam_role.tf-codepipeline-role.arn
 
   artifact_store {
     location = aws_s3_bucket.codepipeline_artifacts.id
