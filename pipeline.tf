@@ -1,7 +1,7 @@
 resource "aws_codebuild_project" "tf-plan" {
   name          = "tf-cicd-plan"
   description   = "plan stage for terraform"
-  service_role  = aws_iam_role.tf-codebuild-role.arn
+  service_role  = aws_iam_role.tf-codepipeline-role.arn
 
   artifacts {
     type = "CODEPIPELINE"
