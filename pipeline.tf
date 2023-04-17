@@ -1,7 +1,7 @@
 resource "aws_codebuild_project" "tf-plan" {
   name          = "tf-cicd-plan"
   description   = "plan stage for terraform"
-  service_role  = aws_iam_role.tf-codepipeline-role.arn
+  service_role  = aws_iam_role.tf-codebuild-role.arn
 
   artifacts {
     type = "CODEPIPELINE"
@@ -26,7 +26,7 @@ resource "aws_codebuild_project" "tf-plan" {
 resource "aws_codebuild_project" "tf-apply" {
   name          = "tf-cicd-apply"
   description   = "apply stage for terraform"
-  service_role  = aws_iam_role.tf-codepipeline-role.arn
+  service_role  = aws_iam_role.tf-codebuild-role.arn
 
   artifacts {
     type = "CODEPIPELINE"
@@ -48,66 +48,62 @@ resource "aws_codebuild_project" "tf-apply" {
   }
 }
 
-resource "aws_codepipeline" "codepipeline" {
-  name     = "tf-test-pipeline"
-  role_arn = aws_iam_role.tf-codepipeline-role.arn
+resource "aws_codepipeline" "cicd_pipeline" {
 
-  artifact_store {
-    location = aws_s3_bucket.codepipeline_artifacts.id
-    type     = "S3"
-  }
+    name = "tf-cicd"
+    role_arn = aws_iam_role.tf-codepipeline-role.arn
 
-  stage {
-    name = "Source"
-
-    action {
-      name             = "Source"
-      category         = "Source"
-      owner            = "AWS"
-      provider         = "CodeStarSourceConnection"
-      version          = "1"
-      output_artifacts = ["tf-code"]
-
-      configuration = {
-        FullRepositoryId = "SexySquidward/aws-cicd-pipeline"
-        BranchName       = "main"
-        ConnectionArn = var.codestar_connector_credentials
-        OutputArtifactFormat = "CODE_ZIP"
-      }
+    artifact_store {
+        type="S3"
+        location = aws_s3_bucket.codepipeline_artifacts.id
     }
-  }
 
-  stage {
-    name = "Plan"
-
-    action {
-      name             = "Build"
-      category         = "Build"
-      owner            = "AWS"
-      provider         = "CodeBuild"
-      input_artifacts  = ["tf-code"]
-      version          = "1"
-
-      configuration = {
-        ProjectName = "tf-cicd-plan"
-      }
+    stage {
+        name = "Source"
+        action{
+            name = "Source"
+            category = "Source"
+            owner = "AWS"
+            provider = "CodeStarSourceConnection"
+            version = "1"
+            output_artifacts = ["tf-code"]
+            configuration = {
+                FullRepositoryId = "davoclock/aws-cicd-pipeline"
+                BranchName   = "master"
+                ConnectionArn = var.codestar_connector_credentials
+                OutputArtifactFormat = "CODE_ZIP"
+            }
+        }
     }
-  }
 
-  stage {
-    name = "Deploy"
-
-    action {
-      name            = "Deploy"
-      category        = "Build"
-      owner           = "AWS"
-      provider        = "CodeBuild"
-      input_artifacts = ["tf-code"]
-      version         = "1"
-
-      configuration = {
-       ProjectName = "tf-cicd-plan"
-      }
+    stage {
+        name ="Plan"
+        action{
+            name = "Build"
+            category = "Build"
+            provider = "CodeBuild"
+            version = "1"
+            owner = "AWS"
+            input_artifacts = ["tf-code"]
+            configuration = {
+                ProjectName = "tf-cicd-plan"
+            }
+        }
     }
-  }
+
+    stage {
+        name ="Deploy"
+        action{
+            name = "Deploy"
+            category = "Build"
+            provider = "CodeBuild"
+            version = "1"
+            owner = "AWS"
+            input_artifacts = ["tf-code"]
+            configuration = {
+                ProjectName = "tf-cicd-apply"
+            }
+        }
+    }
+
 }
