@@ -5,13 +5,7 @@ resource "aws_launch_template" "WebServer" {
   name_prefix   = "WebServer"
   image_id      = "ami-1a2b3c"
   instance_type = "t2.micro"
-  user_data = <<-EOF
-              #!/bin/bash
-              sudo apt update -y  
-              sudo apt install apache2 -y
-              sudo systemctl start apache2
-              sudo bash -c "echo your very first web server > /var/www/html/index.html"
-              EOF
+  user_data = filebase64("user_data/userdata.sh")
 }
 
 resource "aws_autoscaling_group" "asg" {
