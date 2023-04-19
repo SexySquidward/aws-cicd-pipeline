@@ -3,7 +3,7 @@
 resource "aws_launch_template" "WebServer" {
   security_group_names = [ aws_security_group.Allow_web.id ]
   name_prefix   = "WebServer"
-  image_id      = "ami-1a2b3c"
+  image_id      = "ami-05f998315cca9bfe3"
   instance_type = "t2.micro"
   user_data = filebase64("user_data/userdata.sh")
 }
