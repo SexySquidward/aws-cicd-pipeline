@@ -32,5 +32,5 @@ resource "aws_lb" "elb" {
 
 resource "aws_autoscaling_attachment" "asg_attachment_bar" {
   autoscaling_group_name = aws_autoscaling_group.asg.id
-  elb                    = aws_lb.elb.id
+  elb                    = aws_elb.elb.id
 }
